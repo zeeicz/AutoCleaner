@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Auto Cleaner</string>
+    <string name="accessibility_desc">Layanan ini dibutuhkan untuk menekan tombol Hapus Cache secara otomatis di pengaturan Android.</string>
+</resources>
