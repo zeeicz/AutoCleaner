@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -67,9 +68,30 @@ public class MainActivity extends AppCompatActivity {
             long totalCacheSum = 0;
             appList.clear(); 
 
+            // DAFTAR WHITELIST GOOGLE (Dikembalikan)
+            List<String> googleWhitelist = Arrays.asList(
+                "com.google.android.youtube",
+                "com.android.chrome",
+                "com.google.android.googlequicksearchbox", 
+                "com.android.vending", 
+                "com.google.android.apps.maps",
+                "com.google.android.gms", 
+                "com.google.android.gm", 
+                "com.google.android.apps.photos"
+            );
+
             for (ApplicationInfo packageInfo : packages) {
+                
+                // LOGIKA FILTER SISTEM (Dikembalikan)
+                boolean isSystemApp = (packageInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+                boolean isWhitelisted = googleWhitelist.contains(packageInfo.packageName);
+
+                // Jika ini aplikasi sistem dan tidak ada di whitelist Google, lewati!
+                if (isSystemApp && !isWhitelisted) {
+                    continue; 
+                }
+
                 try {
-                    // MENGGUNAKAN StorageManager (BUKAN StorageStats)
                     StorageStats stats = statsManager.queryStatsForPackage(
                             StorageManager.UUID_DEFAULT, 
                             packageInfo.packageName, 
@@ -86,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
                             cacheSize
                         );
                         
+                        // Layanan Google Play (TIDAK DICENTANG)
                         if (packageInfo.packageName.equals("com.google.android.gms")) {
                             app.isSelectToClean = false;
                         } else {
