@@ -13,17 +13,16 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
         
-    # Langkah Baru: Meminta server membuatkan file gradlew versi 8.4
-    - name: Generate Gradle Wrapper
-      run: gradle wrapper --gradle-version 8.4
-      
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-      
-    - name: Build with Gradle Wrapper
-      run: ./gradlew assembleDebug
+    # Langkah Baru: Menggunakan Action Resmi Gradle
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.4'
+        
+    - name: Build with Gradle
+      # Karena kita sudah pakai Setup Gradle, perintah ini otomatis jalan di versi 8.4
+      run: gradle assembleDebug
       
     - name: Upload APK
       uses: actions/upload-artifact@v4
