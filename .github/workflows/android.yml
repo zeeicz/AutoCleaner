@@ -7,6 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
@@ -14,9 +15,15 @@ jobs:
         distribution: 'temurin'
         cache: gradle
         
-    - name: Build with Gradle
-      # Kita gunakan 'gradle' langsung, bukan './gradlew'
-      run: gradle assembleDebug
+    # Langkah Baru: Meminta server membuatkan file gradlew versi 8.4
+    - name: Generate Gradle Wrapper
+      run: gradle wrapper --gradle-version 8.4
+      
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Build with Gradle Wrapper
+      run: ./gradlew assembleDebug
       
     - name: Upload APK
       uses: actions/upload-artifact@v4
