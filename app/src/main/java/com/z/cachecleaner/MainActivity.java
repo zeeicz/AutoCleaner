@@ -7,24 +7,29 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private List<AppInfo> appList = new ArrayList<>();
     private AppAdapter adapter;
+    private TextView tvTotalCache, tvTotalApps;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        tvTotalCache = findViewById(R.id.tvTotalCache);
+        tvTotalApps = findViewById(R.id.tvTotalApps);
         RecyclerView rvApps = findViewById(R.id.rvApps);
         FloatingActionButton fabClean = findViewById(R.id.fabClean);
 
@@ -48,18 +53,56 @@ public class MainActivity extends AppCompatActivity {
         PackageManager pm = getPackageManager();
         List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
         
+        long totalCacheSum = 0;
+        int appCount = 0;
+
+        // Daftar aplikasi Google bawaan yang diizinkan masuk daftar (Whitelist)
+        List<String> googleWhitelist = Arrays.asList(
+            "com.google.android.youtube",
+            "com.android.chrome",
+            "com.google.android.googlequicksearchbox", // Aplikasi Google
+            "com.android.vending", // Google Play Store
+            "com.google.android.apps.maps",
+            "com.google.android.gms", // Layanan Google Play
+            "com.google.android.gm", // Gmail
+            "com.google.android.apps.photos" // Google Photos
+        );
+
         for (ApplicationInfo packageInfo : packages) {
+            boolean isSystemApp = (packageInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+            boolean isWhitelisted = googleWhitelist.contains(packageInfo.packageName);
+
+            // Jika itu aplikasi sistem DAN bukan bagian dari whitelist Google, abaikan/jangan tampilkan
+            if (isSystemApp && !isWhitelisted) {
+                continue;
+            }
+
             Drawable icon = packageInfo.loadIcon(pm);
             String label = packageInfo.loadLabel(pm).toString();
             
-            AppInfo newApp = new AppInfo(label, packageInfo.packageName, icon, (long) (Math.random() * 50 * 1024 * 1024)); // Mock size  testing
+            // Menggunakan ukuran acak untuk simulasi (nanti bisa dihubungkan dengan UsageStatsManager)
+            long cacheSize = (long) (Math.random() * 50 * 1024 * 1024); 
+
+            AppInfo newApp = new AppInfo(label, packageInfo.packageName, icon, cacheSize);
             
-            // Automatically exclude Google Play Services
-            if (packageInfo.packageName.contains("com.google.android.gms")) {
-                newApp.isExcluded = true;
+            // Logika Auto-Select
+            if (packageInfo.packageName.equals("com.google.android.gms")) {
+                // Khusus Layanan Google Play: TAMPIL di daftar, tapi TIDAK DICENTANG
+                newApp.isSelectToClean = false;
+            } else {
+                // Aplikasi lain: TAMPIL di daftar dan OTOMATIS DICENTANG
+                newApp.isSelectToClean = true;
             }
+            
             appList.add(newApp);
+            totalCacheSum += cacheSize;
+            appCount++;
         }
+        
+        // Update teks di header atas
+        tvTotalCache.setText("Total Cache: " + (totalCacheSum / (1024 * 1024)) + " MB");
+        tvTotalApps.setText("Jumlah Aplikasi: " + appCount);
+        
         adapter.notifyDataSetChanged();
     }
 

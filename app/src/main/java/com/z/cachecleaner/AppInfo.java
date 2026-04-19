@@ -6,13 +6,13 @@ public class AppInfo {
     public String packageName;
     public Drawable icon;
     public long cacheSize;
-    public boolean isExcluded;
+    public boolean isSelectToClean; // Dicentang = Dibersihkan
 
     public AppInfo(String appName, String packageName, Drawable icon, long cacheSize) {
         this.appName = appName;
         this.packageName = packageName;
         this.icon = icon;
         this.cacheSize = cacheSize;
-        this.isExcluded = false;
+        this.isSelectToClean = true; // Defaultnya auto-select
     }
 }

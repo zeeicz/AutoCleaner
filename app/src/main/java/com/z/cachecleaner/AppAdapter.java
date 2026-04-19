@@ -31,9 +31,9 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.ViewHolder> {
         holder.tvCache.setText("Cache: " + (app.cacheSize / (1024 * 1024)) + " MB");
         holder.imgIcon.setImageDrawable(app.icon);
         
-        holder.cbExclude.setOnCheckedChangeListener(null); // Hindari bug recycle view
-        holder.cbExclude.setChecked(app.isExcluded);
-        holder.cbExclude.setOnCheckedChangeListener((buttonView, isChecked) -> app.isExcluded = isChecked);
+        holder.cbExclude.setOnCheckedChangeListener(null);
+        holder.cbExclude.setChecked(app.isSelectToClean);
+        holder.cbExclude.setOnCheckedChangeListener((buttonView, isChecked) -> app.isSelectToClean = isChecked);
     }
 
     @Override

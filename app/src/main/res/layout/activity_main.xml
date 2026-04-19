@@ -3,16 +3,50 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res/auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvApps"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingBottom="80dp"/>
+        android:orientation="vertical">
 
-   <com.google.android.material.floatingactionbutton.FloatingActionButton
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#0088CC"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:elevation="4dp">
+
+            <TextView
+                android:id="@+id/tvTotalCache"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total Cache: 0 MB"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvTotalApps"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Jumlah Aplikasi: 0"
+                android:textColor="#E0F7FA"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvApps"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="80dp"/>
+    </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabClean"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -21,6 +55,6 @@
         android:src="@android:drawable/ic_menu_delete" 
         android:contentDescription="Bersihkan"
         android:backgroundTint="#0088CC"
-        android:tint="#FFFFFF" />
+        android:tint="#FFFFFF"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
