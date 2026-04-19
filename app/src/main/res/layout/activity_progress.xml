@@ -1,34 +1,41 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_centerInParent="true" />
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="#FFFFFF"
+    android:padding="20dp">
 
     <TextView
+        android:id="@+id/tvProgressIndex"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/progressBar"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:text="Memproses...\nJangan tekan tombol apapun."
-        android:textAlignment="center"
-        android:textColor="#333333"
-        android:textSize="16sp" />
+        android:text="Proses 0/0"
+        android:textSize="18sp"
+        android:textColor="#888888" />
 
-    <Button
-        android:id="@+id/btnCancel"
+    <ImageView
+        android:id="@+id/ivCurrentAppIcon"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="20dp" />
+
+    <TextView
+        android:id="@+id/tvCurrentAppName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="32dp"
-        android:background="#00000000"
-        android:text="BATAL"
-        android:textColor="#FF0000" />
-</RelativeLayout>
+        android:layout_marginTop="10dp"
+        android:text="Nama Aplikasi"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="#000000" />
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:id="@+id/pbLinear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:indeterminate="true" />
+
+</LinearLayout>

@@ -14,9 +14,7 @@ public class CacheCleanerService extends AccessibilityService {
 
         // Mencari tombol di layar (sesuaikan dengan bahasa HP mu)
         clickNodeByText(rootNode, "Penggunaan Memori");
-        clickNodeByText(rootNode, "Storage");
         clickNodeByText(rootNode, "Hapus Cache");
-        clickNodeByText(rootNode, "Clear Cache");
     }
 
     private void clickNodeByText(AccessibilityNodeInfo node, String text) {

@@ -49,62 +49,63 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void loadInstalledApps() {
-        PackageManager pm = getPackageManager();
-        List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-        
-        long totalCacheSum = 0;
-        int appCount = 0;
-
-        // Daftar aplikasi Google bawaan yang diizinkan masuk daftar (Whitelist)
-        List<String> googleWhitelist = Arrays.asList(
-            "com.google.android.youtube",
-            "com.android.chrome",
-            "com.google.android.googlequicksearchbox", // Aplikasi Google
-            "com.android.vending", // Google Play Store
-            "com.google.android.apps.maps",
-            "com.google.android.gms", // Layanan Google Play
-            "com.google.android.gm", // Gmail
-            "com.google.android.apps.photos" // Google Photos
-        );
-
-        for (ApplicationInfo packageInfo : packages) {
-            boolean isSystemApp = (packageInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
-            boolean isWhitelisted = googleWhitelist.contains(packageInfo.packageName);
-
-            // Jika itu aplikasi sistem DAN bukan bagian dari whitelist Google, abaikan/jangan tampilkan
-            if (isSystemApp && !isWhitelisted) {
-                continue;
-            }
-
-            Drawable icon = packageInfo.loadIcon(pm);
-            String label = packageInfo.loadLabel(pm).toString();
-            
-            // Menggunakan ukuran acak untuk simulasi (nanti bisa dihubungkan dengan UsageStatsManager)
-            long cacheSize = (long) (Math.random() * 50 * 1024 * 1024); 
-
-            AppInfo newApp = new AppInfo(label, packageInfo.packageName, icon, cacheSize);
-            
-            // Logika Auto-Select
-            if (packageInfo.packageName.equals("com.google.android.gms")) {
-                // Khusus Layanan Google Play: TAMPIL di daftar, tapi TIDAK DICENTANG
-                newApp.isSelectToClean = false;
-            } else {
-                // Aplikasi lain: TAMPIL di daftar dan OTOMATIS DICENTANG
-                newApp.isSelectToClean = true;
-            }
-            
-            appList.add(newApp);
-            totalCacheSum += cacheSize;
-            appCount++;
-        }
-        
-        // Update teks di header atas
-        tvTotalCache.setText("Total Cache: " + (totalCacheSum / (1024 * 1024)) + " MB");
-        tvTotalApps.setText("Jumlah Aplikasi: " + appCount);
-        
-        adapter.notifyDataSetChanged();
+private void loadInstalledApps() {
+    // Cek apakah izin Usage Stats sudah diberikan
+    if (!hasUsageStatsPermission()) {
+        startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+        return;
     }
+
+    StorageStatsManager statsManager = getSystemService(StorageStatsManager.class);
+    PackageManager pm = getPackageManager();
+    List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+
+    new Thread(() -> {
+        long totalCacheSum = 0;
+        for (ApplicationInfo packageInfo : packages) {
+            try {
+                // MENGAMBIL UKURAN ASLI DARI SISTEM
+                StorageStats stats = statsManager.queryStatsForPackage(
+                        StorageStats.UUID_DEFAULT, 
+                        packageInfo.packageName, 
+                        android.os.Process.myUserHandle()
+                );
+                
+                long cacheSize = stats.getCacheBytes();
+                if (cacheSize > 0) { // Hanya tampilkan yang punya cache
+                    AppInfo app = new AppInfo(
+                        packageInfo.loadLabel(pm).toString(),
+                        packageInfo.packageName,
+                        packageInfo.loadIcon(pm),
+                        cacheSize
+                    );
+                    
+                    // Filter Google Play Services seperti permintaanmu sebelumnya
+                    if (packageInfo.packageName.equals("com.google.android.gms")) {
+                        app.isSelectToClean = false;
+                    }
+                    
+                    appList.add(app);
+                    totalCacheSum += cacheSize;
+                }
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+
+        long finalTotal = totalCacheSum;
+        runOnUiThread(() -> {
+            tvTotalCache.setText("Total Cache: " + (finalTotal / (1024 * 1024)) + " MB");
+            tvTotalApps.setText("Aplikasi: " + appList.size());
+            adapter.notifyDataSetChanged();
+        });
+    }).start();
+}
+
+private boolean hasUsageStatsPermission() {
+    AppOpsManager appOps = (AppOpsManager) getSystemService(APP_OPS_SERVICE);
+    int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, 
+            android.os.Process.myUid(), getPackageName());
+    return mode == AppOpsManager.MODE_ALLOWED;
+}
 
     private boolean isAccessibilityServiceEnabled() {
         int accessibilityEnabled = 0;
