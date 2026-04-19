@@ -29,7 +29,7 @@ public class CacheCleanerService extends AccessibilityService {
             // Jika berhasil ditekan, beri waktu setengah detik lalu paksa HP menekan tombol KEMBALI
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 performGlobalAction(GLOBAL_ACTION_BACK);
-            }, 500);
+            }, 1500);
         }
     }
 
