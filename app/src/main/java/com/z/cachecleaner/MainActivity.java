@@ -19,7 +19,8 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private List<AppInfo> appList = new ArrayList<>();
+    public static List<AppInfo> appList = new ArrayList<>();
+    
     private AppAdapter adapter;
     private TextView tvTotalCache, tvTotalApps;
 
