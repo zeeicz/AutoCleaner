@@ -1,4 +1,4 @@
-package com.z.cachecleaner;
+package com.z.cachecleaner; 
 
 import android.app.AppOpsManager;
 import android.app.usage.StorageStats;
@@ -8,6 +8,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.storage.StorageManager;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.widget.TextView;
@@ -54,7 +55,6 @@ public class MainActivity extends AppCompatActivity {
     private void loadInstalledApps() {
         if (!hasUsageStatsPermission()) {
             Toast.makeText(this, "Mohon izinkan Akses Penggunaan untuk membaca cache", Toast.LENGTH_LONG).show();
-            // Arahkan user untuk memberikan izin membaca ukuran cache
             startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
             return;
         }
@@ -63,21 +63,21 @@ public class MainActivity extends AppCompatActivity {
         PackageManager pm = getPackageManager();
         List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
 
-        // Menjalankan pencarian aplikasi di background agar HP tidak freeze/ngelag
         new Thread(() -> {
             long totalCacheSum = 0;
             appList.clear(); 
 
             for (ApplicationInfo packageInfo : packages) {
                 try {
+                    // MENGGUNAKAN StorageManager (BUKAN StorageStats)
                     StorageStats stats = statsManager.queryStatsForPackage(
-                            StorageStats.UUID_DEFAULT, 
+                            StorageManager.UUID_DEFAULT, 
                             packageInfo.packageName, 
                             android.os.Process.myUserHandle()
                     );
                     
                     long cacheSize = stats.getCacheBytes();
-                    // Hanya masukkan aplikasi yang memang memiliki cache ke dalam daftar
+                    
                     if (cacheSize > 0) { 
                         AppInfo app = new AppInfo(
                             packageInfo.loadLabel(pm).toString(),
@@ -86,9 +86,10 @@ public class MainActivity extends AppCompatActivity {
                             cacheSize
                         );
                         
-                        // Jangan centang Layanan Google Play secara default
                         if (packageInfo.packageName.equals("com.google.android.gms")) {
                             app.isSelectToClean = false;
+                        } else {
+                            app.isSelectToClean = true;
                         }
                         
                         appList.add(app);
@@ -100,7 +101,6 @@ public class MainActivity extends AppCompatActivity {
             }
 
             long finalTotal = totalCacheSum;
-            // Kembalikan ke layar utama untuk memperbarui teks
             runOnUiThread(() -> {
                 tvTotalCache.setText("Total Cache: " + (finalTotal / (1024 * 1024)) + " MB");
                 tvTotalApps.setText("Jumlah Aplikasi: " + appList.size());
