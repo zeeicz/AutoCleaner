@@ -43,11 +43,21 @@ public class MainActivity extends AppCompatActivity {
 
         loadInstalledApps();
 
-        fabClean.setOnClickListener(v -> {
-            if (!isAccessibilityServiceEnabled()) {
+fabClean.setOnClickListener(v -> {
+            // 1. Cek Izin Overlay (Layar Mengambang)
+            if (!Settings.canDrawOverlays(this)) {
+                Toast.makeText(this, "Izinkan 'Tampilkan di Atas Aplikasi Lain' agar aplikasi dapat berjalan", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, 
+                        android.net.Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+            } 
+            // 2. Cek Izin Robot Aksesibilitas
+            else if (!isAccessibilityServiceEnabled()) {
                 Toast.makeText(this, "Aktifkan Auto Cleaner di Pengaturan Aksesibilitas", Toast.LENGTH_LONG).show();
                 startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-            } else {
+            } 
+            // 3. Jika semua izin lengkap, GAS!
+            else {
                 startActivity(new Intent(this, ProgressActivity.class));
             }
         });
