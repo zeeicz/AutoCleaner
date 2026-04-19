@@ -18,9 +18,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="24dp"
-        app:srcCompat="@android:drawable/ic_menu_delete" 
+        android:src="@drawable/ic_broom" 
         android:contentDescription="Bersihkan"
-        app:backgroundTint="#0088CC"
-        app:tint="#FFFFFF"/>
+        android:backgroundTint="#0088CC"
+        app:tint="#FFFFFF" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
