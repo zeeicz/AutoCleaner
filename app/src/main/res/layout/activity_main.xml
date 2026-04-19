@@ -12,15 +12,15 @@
         android:clipToPadding="false"
         android:paddingBottom="80dp"/>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+   <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabClean"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="24dp"
-        android:src="@drawable/ic_broom" 
+        android:src="@android:drawable/ic_menu_delete" 
         android:contentDescription="Bersihkan"
         android:backgroundTint="#0088CC"
-        app:tint="#FFFFFF" />
+        android:tint="#FFFFFF" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
