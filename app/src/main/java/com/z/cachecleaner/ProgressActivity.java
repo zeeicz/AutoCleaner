@@ -1,4 +1,4 @@
-package com.z.cachecleaner; 
+package com.z.cachecleaner;
 
 import android.content.Intent;
 import android.graphics.PixelFormat;
@@ -9,6 +9,7 @@ import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,33 +20,37 @@ public class ProgressActivity extends AppCompatActivity {
     
     private int currentIndex = 0;
     private List<AppInfo> selectedApps = new ArrayList<>();
-    
-    // Variabel untuk Overlay
     private WindowManager windowManager;
     private View overlayView;
+    private boolean isCancelled = false; // Flag pembatalan
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // KITA TIDAK MENGGUNAKAN setContentView() LAGI!
-        // Kita mencetak layout langsung ke kaca layar HP (WindowManager)
-
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         overlayView = LayoutInflater.from(this).inflate(R.layout.activity_progress, null);
 
+        // Pengaturan agar FULL SCREEN menutupi status bar dan navigasi
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, // Standar Android 8 ke atas
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, // Agar tembus pandang untuk sentuhan robot
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | 
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS |
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, // Tetap gunakan ini agar robot bisa ketik/klik di belakang
                 PixelFormat.TRANSLUCENT
         );
 
-        // Pasang Layar Putih ke depan wajah pengguna
         windowManager.addView(overlayView, params);
 
-        // Ambil daftar aplikasi dari MainActivity
+        // LOGIKA TOMBOL BATAL
+        Button btnCancel = overlayView.findViewById(R.id.btnCancelOverlay);
+        btnCancel.setOnClickListener(v -> {
+            isCancelled = true;
+            tutupOverlay();
+        });
+
         for (AppInfo app : MainActivity.appList) {
             if (app.isSelectToClean) {
                 selectedApps.add(app);
@@ -61,14 +66,13 @@ public class ProgressActivity extends AppCompatActivity {
     }
 
     private void startCleaningLoop() {
-        if (currentIndex >= selectedApps.size()) {
-            tutupOverlay(); // Selesai semua
+        if (isCancelled || currentIndex >= selectedApps.size()) {
+            tutupOverlay();
             return;
         }
 
         AppInfo currentApp = selectedApps.get(currentIndex);
 
-        // UPDATE UI: Perhatikan kita mengambil elemen dari 'overlayView', bukan dari activity
         TextView tvIndex = overlayView.findViewById(R.id.tvProgressIndex);
         tvIndex.setText("Proses " + (currentIndex + 1) + "/" + selectedApps.size());
         
@@ -78,45 +82,34 @@ public class ProgressActivity extends AppCompatActivity {
         TextView tvName = overlayView.findViewById(R.id.tvCurrentAppName);
         tvName.setText(currentApp.appName);
 
-        // Buka Pengaturan Aplikasi di belakang layar putih
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         intent.setData(Uri.parse("package:" + currentApp.packageName));
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Pastikan terbuka sebagai tugas baru
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
         startActivity(intent);
 
-        // Tunggu 2,5 detik agar robot sempat mencari dan mengklik, lalu lanjut!
         new Handler().postDelayed(() -> {
-            currentIndex++;
-            startCleaningLoop();
+            if (!isCancelled) {
+                currentIndex++;
+                startCleaningLoop();
+            }
         }, 2500); 
     }
 
     private void tutupOverlay() {
-        // Cabut layar putih dari kaca HP
+        isCancelled = true;
         if (overlayView != null && windowManager != null) {
             try {
                 windowManager.removeView(overlayView);
             } catch (Exception e) { e.printStackTrace(); }
         }
-        
-        // Panggil kembali layar utama
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(intent);
         finish();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Jaga-jaga jika activity mati paksa, hapus overlay-nya
         if (overlayView != null && overlayView.getWindowToken() != null) {
             windowManager.removeView(overlayView);
         }
-    }
-
-    @Override
-    public void onBackPressed() {
-        // Blokir tombol kembali saat proses berlangsung
     }
 }
