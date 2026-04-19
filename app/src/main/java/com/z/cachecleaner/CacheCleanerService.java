@@ -14,51 +14,44 @@ public class CacheCleanerService extends AccessibilityService {
         AccessibilityNodeInfo rootNode = getRootInActiveWindow();
         if (rootNode == null) return;
 
-        // =========================================================
-        // LANGKAH 1: MENCARI MENU PENYIMPANAN BERDASARKAN ID
-        // =========================================================
-        List<AccessibilityNodeInfo> storageNodes = rootNode.findAccessibilityNodeInfosByViewId("com.coloros.settings:id/oppo_preference");
-        
-        if (!storageNodes.isEmpty()) {
-            for (AccessibilityNodeInfo node : storageNodes) {
-                CharSequence text = node.getText();
-                // Filter: Karena ID ini dipakai banyak menu, pastikan yang diklik ada kata "penyimpanan" atau "memori"
-                if (text != null && (text.toString().toLowerCase().contains("penyimpanan") || text.toString().toLowerCase().contains("memori"))) {
-                    if (node.isClickable() || (node.getParent() != null && node.getParent().isClickable())) {
-                        boolean clicked = node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                        if (!clicked && node.getParent() != null) {
-                            node.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                        }
-                        return; // Berhenti di sini agar layar sempat berpindah
-                    }
-                }
-            }
+        // 1. Cari tombol masuk ke menu Penyimpanan/Memori
+        if (clickNodeByText(rootNode, "Penggunaan penyimpanan") || 
+            clickNodeByText(rootNode, "Penggunaan Memori") || 
+            clickNodeByText(rootNode, "Penyimpanan")) {
+            return; // Berhenti sebentar biarkan layar memuat halaman baru
         }
 
-        // =========================================================
-        // LANGKAH 2: MENCARI TOMBOL HAPUS CACHE BERDASARKAN ID
-        // =========================================================
-        List<AccessibilityNodeInfo> cacheNodes = rootNode.findAccessibilityNodeInfosByViewId("com.coloros.settings:id/clear_cache_button");
-        
-        if (!cacheNodes.isEmpty()) {
-            for (AccessibilityNodeInfo node : cacheNodes) {
-                if (node.isEnabled() && node.isClickable()) {
-                    // Klik tombol Hapus Cache
-                    node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                    
-                    // Jeda 0.5 detik (500ms) lalu tekan tombol KEMBALI (Back) di HP
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        performGlobalAction(GLOBAL_ACTION_BACK);
-                    }, 500); 
-                    
-                    return;
+        // 2. Cari tombol Hapus Cache
+        if (clickNodeByText(rootNode, "Hapus cache") || 
+            clickNodeByText(rootNode, "Hapus Cache") || 
+            clickNodeByText(rootNode, "Bersihkan cache")) {
+            
+            // Jika berhasil ditekan, beri waktu setengah detik lalu paksa HP menekan tombol KEMBALI
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                performGlobalAction(GLOBAL_ACTION_BACK);
+            }, 500);
+        }
+    }
+
+    // Fungsi canggih untuk mencari dan menekan teks
+    private boolean clickNodeByText(AccessibilityNodeInfo node, String text) {
+        List<AccessibilityNodeInfo> list = node.findAccessibilityNodeInfosByText(text);
+        for (AccessibilityNodeInfo item : list) {
+            CharSequence itemText = item.getText();
+            // Pastikan teksnya benar-benar mirip agar tidak salah klik
+            if (itemText != null && itemText.toString().toLowerCase().contains(text.toLowerCase())) {
+                if (item.isClickable() && item.isEnabled()) {
+                    item.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    return true;
+                } else if (item.getParent() != null && item.getParent().isClickable()) {
+                    item.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    return true;
                 }
             }
         }
+        return false; // Gagal menemukan teks
     }
 
     @Override
-    public void onInterrupt() {
-        // Biarkan kosong, dipanggil saat layanan aksesibilitas dihentikan paksa
-    }
+    public void onInterrupt() {}
 }
